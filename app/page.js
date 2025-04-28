@@ -142,7 +142,7 @@ export default function Home() {
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
           placeholder="Ask Nomad AI..."
-          className="flex-1 w-10 h-12 bg-[#1d1d1d] text-white rounded-full outline-none"
+          className="flex-1 px-10 w-10 h-12 bg-[#1d1d1d] text-white rounded-full outline-none"
         />
         <button
           type="submit"
