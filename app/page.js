@@ -2,6 +2,8 @@
 import { useState, useRef, useEffect } from "react";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowUp } from '@fortawesome/free-solid-svg-icons';
+import ReactMarkdown from 'react-markdown';
+
 
 export default function Home() {
   const [chatHistory, setChatHistory] = useState([
@@ -36,7 +38,7 @@ export default function Home() {
       } else {
         clearInterval(interval);
       }
-    }, 5); // Speed is already fast, you can reduce it more if needed
+    }, 1); // Speed is already fast, you can reduce it more if needed
   };
 
 
@@ -126,7 +128,7 @@ export default function Home() {
                 </div>
               </div>
             ) : (
-              msg.content
+              <ReactMarkdown>{msg.content}</ReactMarkdown>
             )}
 
           </div>
