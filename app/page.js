@@ -1,5 +1,7 @@
 "use client";
 import { useState, useRef, useEffect } from "react";
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faArrowUp } from '@fortawesome/free-solid-svg-icons';
 
 export default function Home() {
   const [chatHistory, setChatHistory] = useState([
@@ -95,8 +97,8 @@ export default function Home() {
   return (
     <div className="flex flex-col h-screen bg-[#1B1C1D] text-white font-sans">
       <header className="bg-[#282A2C] p-5 text-center text-2xl font-bold border-b border-[#2c2c2c]">
-        <span className="bg-gradient-to-r from-[#4A6DFF] to-[#8E44FF] bg-clip-text text-transparent font-roboto">
-          Nomad AI
+        <span className="text-3xl bg-gradient-to-r from-[#4A6DFF] to-[#8E44FF] bg-clip-text text-transparent font-roboto">
+          wanderer.ai
         </span>
       </header>
 
@@ -140,13 +142,13 @@ export default function Home() {
           value={userInput}
           onChange={(e) => setUserInput(e.target.value)}
           placeholder="Ask Nomad AI..."
-          className="flex-1 px-4 py-3 bg-[#1d1d1d] text-white rounded-full outline-none"
+          className="flex-1 w-10 h-12 bg-[#1d1d1d] text-white rounded-full outline-none"
         />
         <button
           type="submit"
-          className="ml-3 px-4 py-2 bg-gradient-to-r from-[#4A6DFF] to-[#8E44FF] rounded-full text-white font-medium"
+          className="hover:cursor-pointer transition-all hover:bg-[#4a6eff76] ml-3 font-bold px-[20px] py-2 bg-[#4A6DFF] rounded-full text-white"
         >
-          ➤
+          <FontAwesomeIcon icon={faArrowUp} className="font-bold" />
         </button>
       </form>
       <style jsx global>{`
