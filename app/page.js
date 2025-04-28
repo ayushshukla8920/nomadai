@@ -104,28 +104,31 @@ export default function Home() {
         className="flex-1 overflow-y-auto p-6 space-y-4 flex flex-col"
         ref={chatMessagesRef}
       >
-        {chatHistory.map((msg, idx) => {
-          if (msg.role === "bot" && msg.content === "" && isLoading) return null; // 👈 Hide empty bot bubble
-          return (
-            <div
-              key={idx}
-              className={`px-4 py-3 rounded-xl text-base leading-relaxed whitespace-pre-line break-words max-w-[80%] ${msg.role === "user"
-                ? "bg-[#333537] self-end text-white rounded-br-md"
-                : "self-start text-gray-200"
-                }`}
-            >
-              {msg.content}
-            </div>
-          );
-        })}
+        {chatHistory.map((msg, idx) => (
+          <div
+            key={idx}
+            className={`px-4 py-3 rounded-xl text-base leading-relaxed whitespace-pre-line break-words max-w-[80%] ${msg.role === "user"
+              ? "bg-[#333537] self-end text-white rounded-br-md"
+              : "self-start text-gray-200"
+              }`}
+          >
+            {msg.role === "bot" && msg.content === "" && isLoading ? (
+              <div className="flex items-center justify-center">
+                <div className="relative w-12 h-12 flex items-center justify-center">
+                  <div className="loader absolute inset-0"></div>  {/* background animation */}
+                  <img
+                    src="/icon.png"
+                    className="h-5 w-5 z-10 mr-[25%] mb-[25%]"  /* z-index to keep it above loader */
+                    alt="Loading"
+                  />
+                </div>
+              </div>
+            ) : (
+              msg.content
+            )}
 
-
-        {isLoading && (
-          <div className="self-start flex items-center justify-center w-12 h-12">
-            <img src="/icon.png" className="relative h-5 w-5" alt="hi"></img>
-            <div className="loader absolute"></div>
           </div>
-        )}
+        ))}
       </main>
 
       <form
