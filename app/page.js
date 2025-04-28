@@ -101,7 +101,7 @@ export default function Home() {
       </header>
 
       <main
-        className="flex-1 overflow-y-auto p-6 space-y-4 flex flex-col pb-10"
+        className="flex-1 overflow-y-auto p-6 space-y-4 flex flex-col"
         ref={chatMessagesRef}
       >
         {chatHistory.map((msg, idx) => {
@@ -122,10 +122,8 @@ export default function Home() {
 
         {isLoading && (
           <div className="self-start flex items-center justify-center w-12 h-12">
-            
-            <img src="/icon.png" className="h-5 w-5 z-20" alt="hi"></img>
-            <div className="loader z-10">
-            </div>
+            <img src="/icon.png" className="relative h-5 w-5" alt="hi"></img>
+            <div className="loader absolute"></div>
           </div>
         )}
       </main>
