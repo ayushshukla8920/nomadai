@@ -1,189 +1,241 @@
-"use client";
-import { useState, useRef, useEffect } from "react";
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowUp } from '@fortawesome/free-solid-svg-icons';
+'use client';
+import React, { memo, useState } from 'react';
+import { motion } from 'framer-motion';
+import dynamic from 'next/dynamic';
 import ReactMarkdown from 'react-markdown';
 
+const World = memo(dynamic(() => import('../components/globe').then((m) => m.World), {
+  ssr: false,
+}));
 
-export default function Home() {
-  const [chatHistory, setChatHistory] = useState([
-    { role: "bot", content: "Hi there! How can I help you today?" },
-  ]);
-  const [userInput, setUserInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const chatMessagesRef = useRef(null);
-  const API_ENDPOINT = "/api/analyze";
+const globeConfig = {
+  pointSize: 4,
+  globeColor: "#062056",
+  showAtmosphere: true,
+  atmosphereColor: "#FFFFFF",
+  atmosphereAltitude: 0.1,
+  emissive: "#062056",
+  emissiveIntensity: 0.1,
+  shininess: 0.9,
+  polygonColor: "rgba(255,255,255,0.7)",
+  ambientLight: "#38bdf8",
+  directionalLeftLight: "#ffffff",
+  directionalTopLight: "#ffffff",
+  pointLight: "#ffffff",
+  arcTime: 1000,
+  arcLength: 0.9,
+  rings: 1,
+  maxRings: 3,
+};
 
-  const scrollToBottom = () => {
-    if (chatMessagesRef.current) {
-      chatMessagesRef.current.scrollTop = chatMessagesRef.current.scrollHeight;
-    }
+const colors = ["#06b6d4", "#3b82f6", "#6366f1"];
+const sampleArcs = [
+  {
+    order: 1,
+    startLat: 28.6139,
+    startLng: 77.209,
+    endLat: 40.7128,
+    endLng: -74.006,
+    arcAlt: 0.2,
+    color: colors[0],
+  },
+  {
+    order: 2,
+    startLat: 1.3521,
+    startLng: 103.8198,
+    endLat: 51.5072,
+    endLng: -0.1276,
+    arcAlt: 0.2,
+    color: colors[1],
+  },
+];
+
+export default function WandererPage() {
+  const [showModal, setShowModal] = useState(false);
+  const [recommendation, setRecommendation] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    city: '',
+    locationType: '',
+    internet: '',
+    budget: '',
+    weather: '',
+    accommodation: '',
+    coworking: false,
+    noiseSensitive: false,
+    petFriendly: false,
+    communityType: '',
+    transport: '',
+    visaFree: false,
+  });
+
+  const handleChange = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: type === 'checkbox' ? checked : value,
+    }));
   };
 
-  useEffect(() => {
-    scrollToBottom();
-  }, [chatHistory]);
-
-  const addMessage = (role, content) => {
-    setChatHistory((prev) => [...prev, { role, content }]);
-  };
-
-  const simulateTypingEffect = (text, callback) => {
-    setIsLoading(false); // 👈 Hide spinner instantly
-    let index = 0;
-    const interval = setInterval(() => {
-      if (index < text.length) {
-        callback(text.slice(0, index + 1));
-        index++;
-      } else {
-        clearInterval(interval);
-      }
-    }, 1); // Speed is already fast, you can reduce it more if needed
-  };
-
-
-  const sendMessage = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!userInput.trim()) return;
-
-    const message = userInput.trim();
-    addMessage("user", message);
-    setUserInput("");
-    addMessage("bot", ""); // Placeholder
-    setIsLoading(true);
-
+    setLoading(true);
     try {
-      const response = await fetch(API_ENDPOINT, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          prompt: [...chatHistory, { role: "user", content: message }],
-        }),
+      const res = await fetch('/api/recommend', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
 
-      const data = await response.json();
-
-      let raw = data.reply || "Unexpected response from AI.";
-      raw = raw.trim();
-      if (raw.startsWith("```")) {
-        raw = raw.replace(/```[a-z]*\n?/i, "").replace(/```$/, "");
-      }
-
-      let parsedContent = "Unable to parse response.";
-      try {
-        const json = JSON.parse(raw);
-        const lastPart = Array.isArray(json.parts)
-          ? json.parts[json.parts.length - 1]
-          : json;
-        parsedContent = lastPart?.content || JSON.stringify(json);
-      } catch (err) {
-        parsedContent = raw;
-      }
-
-      simulateTypingEffect(parsedContent, (partial) => {
-        setChatHistory((prev) => {
-          const updated = [...prev];
-          updated[updated.length - 1].content = partial;
-          return [...updated];
-        });
-      });
+      const data = await res.json();
+      setRecommendation(data.recommendations);
+      setShowModal(true);
     } catch (err) {
-      setChatHistory((prev) => [
-        ...prev.slice(0, -1),
-        { role: "bot", content: "Error: " + err.message },
-      ]);
-      setIsLoading(false);
+      console.error("Recommendation Error:", err);
+    } finally {
+      setLoading(false);
     }
   };
+
+
+
 
   return (
-    <div className="flex flex-col h-screen bg-[#1B1C1D] text-white font-sans">
-      <header className="bg-[#282A2C] p-5 text-center text-2xl font-bold border-b border-[#2c2c2c]">
-        <span className="text-3xl bg-gradient-to-r from-[#4A6DFF] to-[#8E44FF] bg-clip-text text-transparent font-roboto">
-          wanderer.ai
-        </span>
-      </header>
+    <div className="min-h-screen bg-black text-white flex items-center justify-center px-4 py-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 w-full max-w-7xl gap-8 items-center">
 
-      <main
-        className="flex-1 overflow-y-auto p-6 space-y-4 flex flex-col"
-        ref={chatMessagesRef}
-      >
-        {chatHistory.map((msg, idx) => (
-          <div
-            key={idx}
-            className={`px-4 py-3 rounded-xl text-base leading-relaxed whitespace-pre-line break-words max-w-[80%] ${msg.role === "user"
-              ? "bg-[#333537] self-end text-white rounded-br-md"
-              : "self-start text-gray-200"
-              }`}
-          >
-            {msg.role === "bot" && msg.content === "" && isLoading ? (
-              <div className="flex items-center justify-center">
-                <div className="relative w-12 h-12 flex items-center justify-center">
-                  <div className="loader absolute inset-0"></div>  {/* background animation */}
-                  <img
-                    src="/icon.png"
-                    className="h-5 w-5 z-10 mr-[25%] mb-[25%]"  /* z-index to keep it above loader */
-                    alt="Loading"
-                  />
-                </div>
-              </div>
-            ) : (
-              <ReactMarkdown>{msg.content}</ReactMarkdown>
-            )}
-
-          </div>
-        ))}
-      </main>
-
-      <form
-        onSubmit={sendMessage}
-        className="flex p-4 bg-[#282A2C] border-t border-[#000000]"
-      >
-        <input
-          type="text"
-          value={userInput}
-          onChange={(e) => setUserInput(e.target.value)}
-          placeholder="Ask Nomad AI..."
-          className="flex-1 px-10 w-10 h-12 bg-[#1d1d1d] text-white rounded-full outline-none"
-        />
-        <button
-          type="submit"
-          className="hover:cursor-pointer transition-all hover:bg-[#4a6eff76] ml-3 font-bold px-[20px] py-2 bg-[#4A6DFF] rounded-full text-white"
+        {/* 🧠 FORM SIDE */}
+        {/* 🧠 Enhanced Chat Form Side */}
+        <motion.div
+          className="w-full bg-white/10 backdrop-blur-2xl rounded-3xl shadow-2xl p-6 md:p-8 border border-white/20"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6 }}
         >
-          <FontAwesomeIcon icon={faArrowUp} className="font-bold" />
-        </button>
-      </form>
-      <style jsx global>{`
-        .loader {
-          width: 35px;
-          aspect-ratio: 1;
-          border-radius: 50%;
-          background: conic-gradient(from 0deg, #0093FF, #8E44FF, #0093FF);
-          mask: 
-            radial-gradient(farthest-side, transparent 80%, black 66%);
-          -webkit-mask: 
-            radial-gradient(farthest-side, transparent 80%, black 66%);
-          animation:
-            l20-1 0.5s infinite linear alternate,
-            l20-2 1.0s infinite linear;
-        }
-        @keyframes l20-1{
-          0%    {clip-path: polygon(50% 50%,0       0,  50%   0%,  50%    0%, 50%    0%, 50%    0%, 50%    0% )}
-          12.5% {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100%   0%, 100%   0%, 100%   0% )}
-          25%   {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100% 100%, 100% 100%, 100% 100% )}
-          50%   {clip-path: polygon(50% 50%,0       0,  50%   0%,  100%   0%, 100% 100%, 50%  100%, 0%   100% )}
-          62.5% {clip-path: polygon(50% 50%,100%    0, 100%   0%,  100%   0%, 100% 100%, 50%  100%, 0%   100% )}
-          75%   {clip-path: polygon(50% 50%,100% 100%, 100% 100%,  100% 100%, 100% 100%, 50%  100%, 0%   100% )}
-          100%  {clip-path: polygon(50% 50%,50%  100%,  50% 100%,   50% 100%,  50% 100%, 50%  100%, 0%   100% )}
-        }
-        @keyframes l20-2{ 
-          0%    {transform:scaleY(1)  rotate(0deg)}
-          49.99%{transform:scaleY(1)  rotate(135deg)}
-          50%   {transform:scaleY(-1) rotate(0deg)}
-          100%  {transform:scaleY(-1) rotate(-135deg)}
-        }
-      `}</style>
+          <h1 className="text-3xl font-bold text-cyan-400 text-center mb-3">Wanderer.ai</h1>
+          <p className="text-center text-sm text-gray-300 mb-6">Plan your perfect nomadic lifestyle 🌍</p>
+
+          <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <Input label="City Name" name="city" value={formData.city} onChange={handleChange} />
+            <Select label="Location Type" name="locationType" value={formData.locationType} onChange={handleChange}
+              options={['Peaceful', 'Remote', 'City']} />
+            <Select label="Internet" name="internet" value={formData.internet} onChange={handleChange}
+              options={['High-Speed', 'Basic', 'Not Required']} />
+            <Input label="Budget (USD)" type="number" name="budget" value={formData.budget} onChange={handleChange} />
+            <Select label="Weather" name="weather" value={formData.weather} onChange={handleChange}
+              options={['Cold', 'Moderate', 'Warm', 'Tropical']} />
+            <Select label="Accommodation" name="accommodation" value={formData.accommodation} onChange={handleChange}
+              options={['Apartment', 'Co-living', 'Hostel', 'Airbnb', 'Guesthouse']} />
+            <Select label="Community" name="communityType" value={formData.communityType} onChange={handleChange}
+              options={['Spiritual', 'Artistic', 'Tech', 'Solo']} />
+            <Select label="Transport" name="transport" value={formData.transport} onChange={handleChange}
+              options={['Public', 'Bike Rental', 'Walkable']} />
+
+            <div className="col-span-2 grid grid-cols-2 gap-4">
+              <Checkbox label="Co-working" name="coworking" checked={formData.coworking} onChange={handleChange} />
+              <Checkbox label="Noise Sensitive" name="noiseSensitive" checked={formData.noiseSensitive} onChange={handleChange} />
+              <Checkbox label="Pet Friendly" name="petFriendly" checked={formData.petFriendly} onChange={handleChange} />
+              <Checkbox label="Visa-Free" name="visaFree" checked={formData.visaFree} onChange={handleChange} />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className={`col-span-2 mt-2 flex items-center justify-center gap-2 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-semibold py-2 rounded-xl transition-all duration-300 ${loading ? 'opacity-70 cursor-not-allowed' : 'hover:opacity-90'
+                }`}
+            >
+              {loading && (
+                <svg className="w-5 h-5 animate-spin text-white" fill="none" viewBox="0 0 24 24">
+                  <circle
+                    className="opacity-25"
+                    cx="12" cy="12" r="10"
+                    stroke="currentColor" strokeWidth="4"
+                  />
+                  <path
+                    className="opacity-75"
+                    fill="currentColor"
+                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"
+                  />
+                </svg>
+              )}
+              {loading ? "Thinking..." : "Get Recommendation"}
+            </button>
+
+          </form>
+        </motion.div>
+
+        {/* 🌍 GLOBE SIDE */}
+        <div className="h-[500px] md:h-[600px] shrink-0 w-full overflow-hidden rounded-3xl shadow-xl">
+          <World data={sampleArcs} globeConfig={globeConfig} />
+        </div>
+      </div>
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="relative max-w-3xl w-full max-h-[90vh] overflow-y-auto rounded-2xl border border-white/10 bg-white/10 backdrop-blur-md p-6 shadow-2xl text-white">
+            {/* Close Button */}
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-3 right-4 text-white/80 hover:text-white text-xl font-bold"
+              aria-label="Close"
+            >
+              ×
+            </button>
+
+            {/* Modal Content */}
+            <h2 className="text-2xl font-semibold text-cyan-400 mb-4 text-center">🌍 Suggested Destinations</h2>
+            <div className="prose prose-invert max-w-none prose-p:my-2 prose-li:my-1 text-white text-sm leading-relaxed">
+              <ReactMarkdown>{recommendation}</ReactMarkdown>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+
+  );
+}
+function Input({ label, name, value, onChange, type = 'text' }) {
+  return (
+    <div className="flex flex-col">
+      <label className="mb-1 text-gray-300">{label}</label>
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="bg-white/10 border border-white/20 text-white p-2 rounded-lg outline-none focus:ring-2 focus:ring-cyan-400"
+      />
     </div>
   );
 }
 
+function Select({ label, name, value, onChange, options }) {
+  return (
+    <div className="flex flex-col">
+      <label className="mb-1 text-gray-300">{label}</label>
+      {/* Updated className for the select element */}
+      <select
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="bg-white/10 backdrop-blur-md border border-white/20 text-white p-2 rounded-lg outline-none focus:ring-2 focus:ring-cyan-400 appearance-none pr-8 transition-all duration-200" // Added appearance-none and pr-8
+      >
+        <option value="" disabled>Select</option>
+        {options.map((opt) => (
+          <option key={opt} value={opt.toLowerCase()} className="bg-gray-700 text-white"> {/* Styled options */}
+            {opt}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
+
+function Checkbox({ label, name, checked, onChange }) {
+  return (
+    <div className="flex items-center gap-2">
+      <input type="checkbox" name={name} checked={checked} onChange={onChange} />
+      <label className="text-gray-300">{label}</label>
+    </div>
+  );
+}
