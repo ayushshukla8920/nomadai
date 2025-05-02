@@ -170,25 +170,31 @@ export default function WandererPage() {
         </div>
       </div>
       {showModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-          <div className="relative max-w-3xl w-full max-h-[90vh] overflow-y-auto rounded-2xl border border-white/10 bg-white/10 backdrop-blur-md p-6 shadow-2xl text-white">
-            {/* Close Button */}
-            <button
-              onClick={() => setShowModal(false)}
-              className="absolute top-3 right-4 text-white/80 hover:text-white text-xl font-bold"
-              aria-label="Close"
-            >
-              ×
-            </button>
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4 py-8">
+    <div className="relative w-full max-w-3xl max-h-[90vh] overflow-y-auto rounded-2xl bg-gradient-to-br from-black via-gray-900 to-gray-800 border border-white/10 backdrop-blur-lg shadow-2xl p-8 text-white">
+      
+      {/* Close Button */}
+      <button
+        onClick={() => setShowModal(false)}
+        className="absolute top-4 right-5 text-white/80 hover:text-white text-2xl font-bold leading-none"
+        aria-label="Close"
+      >
+        ×
+      </button>
 
-            {/* Modal Content */}
-            <h2 className="text-2xl font-semibold text-cyan-400 mb-4 text-center">🌍 Suggested Destinations</h2>
-            <div className="prose prose-invert max-w-none prose-p:my-2 prose-li:my-1 text-white text-sm leading-relaxed">
-              <ReactMarkdown>{recommendation}</ReactMarkdown>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modal Title */}
+      <h2 className="text-3xl font-bold text-center text-cyan-400 mb-6">
+        🌍 Suggested Destinations
+      </h2>
+
+      {/* Markdown Output */}
+      <div className="prose prose-invert prose-p:text-white prose-li:text-white prose-headings:text-cyan-300 prose-h2:mt-6 prose-h3:mt-4 max-w-none text-base leading-relaxed">
+        <ReactMarkdown>{recommendation}</ReactMarkdown>
+      </div>
+    </div>
+  </div>
+)}
+
     </div>
 
   );
