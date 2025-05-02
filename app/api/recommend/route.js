@@ -20,21 +20,24 @@ export async function POST(req) {
 }
 function generatePrompt(data) {
   return `
-A digital nomad is planning their next destination. Based on the following preferences, suggest 4–5 cities or regions around the world:
+A digital nomad is planning to stay in **${data.city || 'a city'}**. Based on the following preferences, suggest **4–5 ideal neighborhoods, districts, or localities** within this city that best suit their lifestyle.
 
-- City Name: ${data.city || 'Not specified'}
+User preferences:
 - Location Type: ${data.locationType}
 - Internet Needs: ${data.internet}
-- Budget: ${data.budget ? `$${data.budget}` : 'Not mentioned'}
+- Monthly Budget: ${data.budget ? `$${data.budget}` : 'Not mentioned'}
 - Weather Preference: ${data.weather}
-- Accommodation: ${data.accommodation}
-- Community Type: ${data.communityType}
-- Transport Type: ${data.transport}
-- Co-working Needed: ${data.coworking ? 'Yes' : 'No'}
+- Accommodation Type: ${data.accommodation}
+- Community Vibe: ${data.communityType}
+- Transport Access: ${data.transport}
+- Needs Co-working Space: ${data.coworking ? 'Yes' : 'No'}
 - Noise Sensitive: ${data.noiseSensitive ? 'Yes' : 'No'}
 - Pet Friendly: ${data.petFriendly ? 'Yes' : 'No'}
-- Visa-Free Travel Required: ${data.visaFree ? 'Yes' : 'No'}
+- Requires Visa-Free Travel: ${data.visaFree ? 'Yes' : 'No'}
 
-Provide a short justification for each suggestion, and ensure they match the lifestyle described.
-  `;
+👉 Output format:
+- List 4–5 areas **within ${data.city || 'this city'}**
+- Mention 1–2 sentences for each explaining why it matches
+- Focus on lifestyle compatibility, not general tourism
+`;
 }
